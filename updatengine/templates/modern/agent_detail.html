@@ -1,0 +1,143 @@
+{% extends \"modern/base.html\" %}
+
+{% block title %}Détails de {{ machine.name }} - UpdatEngine{% endblock %}
+
+{% block content %}
+<div class=\"max-w-7xl mx-auto\">
+    <!-- Breadcrumbs -->
+    <nav class=\"flex mb-4\" aria-label=\"Breadcrumb\">
+        <ol class=\"inline-flex items-center space-x-1 md:space-x-3\">
+            <li class=\"inline-flex items-center\">
+                <a href=\"/inventory/\" class=\"text-sm text-gray-500 hover:text-blue-600\">Parc Informatique</a>
+            </li>
+            <li>
+                <div class=\"flex items-center\">
+                    <i class=\"fas fa-chevron-right text-gray-400 text-xs mx-2\"></i>
+                    <span class=\"text-sm font-medium text-gray-900\">{{ machine.name }}</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Header Section -->
+    <div class=\"bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-8\">
+        <div class=\"flex flex-col md:flex-row md:items-center justify-between gap-4\">
+            <div class=\"flex items-center\">
+                <div class=\"h-16 w-16 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 mr-5 shadow-inner\">
+                    <i class=\"fas fa-desktop text-2xl\"></i>
+                </div>
+                <div>
+                    <h1 class=\"text-2xl font-bold text-gray-900\">{{ machine.name }}</h1>
+                    <div class=\"flex items-center mt-1 space-x-3\">
+                        <span class=\"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800\">
+                            <span class=\"w-2 h-2 mr-1.5 bg-green-500 rounded-full animate-pulse\"></span>En ligne
+                        </span>
+                        <span class=\"text-sm text-gray-500\">Dernier contact : {{ machine.lastsave|date:\"d/m/Y H:i\" }}</span>
+                    </div>
+                </div>
+            </div>
+            <div class=\"flex gap-2\">
+                <button class=\"flex-1 md:flex-none bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors\">
+                    <i class=\"fas fa-power-off mr-2 text-orange-500\"></i> Wake on LAN
+                </button>
+                <button class=\"flex-1 md:flex-none bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm\">
+                    <i class=\"fas fa-sync-alt mr-2\"></i> Forcer le contact
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class=\"grid grid-cols-1 lg:grid-cols-3 gap-8\">
+        <!-- Sidebar Info -->
+        <div class=\"space-y-6\">
+            <!-- Hardware Card -->
+            <div class=\"bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden\">
+                <div class=\"px-5 py-4 border-b border-gray-100 bg-gray-50/50\">
+                    <h3 class=\"text-sm font-bold text-gray-900 flex items-center\">
+                        <i class=\"fas fa-microchip mr-2 text-gray-400\"></i> Informations Système
+                    </h3>
+                </div>
+                <div class=\"p-5 space-y-4\">
+                    <div>
+                        <p class=\"text-xs text-gray-500 uppercase font-semibold\">OS</p>
+                        <p class=\"text-sm text-gray-900 font-medium\">{{ machine.osdistribution_set.first.name }} {{ machine.osdistribution_set.first.version }} ({{ machine.osdistribution_set.first.arch }})</p>
+                    </div>
+                    <div>
+                        <p class=\"text-xs text-gray-500 uppercase font-semibold\">Matériel</p>
+                        <p class=\"text-sm text-gray-900 font-medium\">{{ machine.vendor }} - {{ machine.product }}</p>
+                    </div>
+                    <div>
+                        <p class=\"text-xs text-gray-500 uppercase font-semibold\">Numéro de Série</p>
+                        <p class=\"text-sm font-mono text-gray-900\">{{ machine.serial }}</p>
+                    </div>
+                    <div>
+                        <p class=\"text-xs text-gray-500 uppercase font-semibold\">UUID</p>
+                        <p class=\"text-xs font-mono text-gray-500 break-all\">{{ machine.uuid }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Network Card -->
+            <div class=\"bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden\">
+                <div class=\"px-5 py-4 border-b border-gray-100 bg-gray-50/50\">
+                    <h3 class=\"text-sm font-bold text-gray-900 flex items-center\">
+                        <i class=\"fas fa-network-wired mr-2 text-gray-400\"></i> Réseau
+                    </h3>
+                </div>
+                <div class=\"p-5 space-y-4\">
+                    {% for interface in machine.net_set.all %}
+                    <div class=\"pb-3 border-b border-gray-50 last:border-0 last:pb-0\">
+                        <div class=\"flex justify-between\">
+                            <span class=\"text-xs font-semibold text-gray-500\">IPv4</span>
+                            <span class=\"text-sm font-medium text-gray-900\">{{ interface.ip }}</span>
+                        </div>
+                        <div class=\"flex justify-between mt-1\">
+                            <span class=\"text-xs font-semibold text-gray-500\">MAC</span>
+                            <span class=\"text-sm font-mono text-gray-500\">{{ interface.mac }}</span>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class=\"text-sm text-gray-500 italic\">Aucune interface détectée</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Tabs Content -->
+        <div class=\"lg:col-span-2 space-y-6\">
+            <!-- Software Table -->
+            <div class=\"bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden\">
+                <div class=\"px-6 py-4 border-b border-gray-100 flex items-center justify-between\">
+                    <h3 class=\"font-bold text-gray-900\">Logiciels Installés ({{ machine.software_set.count }})</h3>
+                    <div class=\"relative\">
+                        <input type=\"text\" placeholder=\"Filtrer...\" class=\"text-xs border border-gray-300 rounded-lg pl-8 pr-3 py-1.5 focus:ring-1 focus:ring-blue-500 outline-none\">
+                        <i class=\"fas fa-search absolute left-2.5 top-2 text-gray-400 text-[10px]\"></i>
+                    </div>
+                </div>
+                <div class=\"overflow-x-auto max-h-[600px] overflow-y-auto\">
+                    <table class=\"min-w-full divide-y divide-gray-200\">
+                        <thead class=\"bg-gray-50 sticky top-0 z-10\">
+                            <tr>
+                                <th class=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Nom</th>
+                                <th class=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Version</th>
+                            </tr>
+                        </thead>
+                        <tbody class=\"bg-white divide-y divide-gray-200\">
+                            {% for soft in machine.software_set.all %}
+                            <tr class=\"hover:bg-gray-50 transition-colors\">
+                                <td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900\">{{ soft.name }}</td>
+                                <td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">{{ soft.version }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan=\"2\" class=\"px-6 py-10 text-center text-gray-500 italic\">Aucun logiciel inventorié</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
