@@ -1,142 +1,288 @@
-{% extends \"modern/base.html\" %}
+{% extends "modern/base.html" %}
 
-{% block title %}Détails de {{ machine.name }} - UpdatEngine{% endblock %}
+{% block title %}Détails Agent : {{ machine.name }} - UpdateEngine{% endblock %}
 
 {% block content %}
-<div class=\"max-w-7xl mx-auto\">
-    <!-- Breadcrumbs -->
-    <nav class=\"flex mb-4\" aria-label=\"Breadcrumb\">
-        <ol class=\"inline-flex items-center space-x-1 md:space-x-3\">
-            <li class=\"inline-flex items-center\">
-                <a href=\"/inventory/\" class=\"text-sm text-gray-500 hover:text-blue-600\">Parc Informatique</a>
-            </li>
-            <li>
-                <div class=\"flex items-center\">
-                    <i class=\"fas fa-chevron-right text-gray-400 text-xs mx-2\"></i>
-                    <span class=\"text-sm font-medium text-gray-900\">{{ machine.name }}</span>
-                </div>
-            </li>
-        </ol>
-    </nav>
-
-    <!-- Header Section -->
-    <div class=\"bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-8\">
-        <div class=\"flex flex-col md:flex-row md:items-center justify-between gap-4\">
-            <div class=\"flex items-center\">
-                <div class=\"h-16 w-16 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 mr-5 shadow-inner\">
-                    <i class=\"fas fa-desktop text-2xl\"></i>
-                </div>
-                <div>
-                    <h1 class=\"text-2xl font-bold text-gray-900\">{{ machine.name }}</h1>
-                    <div class=\"flex items-center mt-1 space-x-3\">
-                        <span class=\"inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800\">
-                            <span class=\"w-2 h-2 mr-1.5 bg-green-500 rounded-full animate-pulse\"></span>En ligne
-                        </span>
-                        <span class=\"text-sm text-gray-500\">Dernier contact : {{ machine.lastsave|date:\"d/m/Y H:i\" }}</span>
+<div class="animate-fade-in space-y-8" x-data="{ activeTab: 'overview' }">
+    <!-- Breadcrumbs & Actions -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% url 'inventory' %}" class="inline-flex items-center text-sm font-medium text-slate-400 hover:text-blue-400 transition-colors">
+                        <i class="fas fa-desktop mr-2"></i>
+                        Parc Informatique
+                    </a>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-slate-600 text-xs mx-2"></i>
+                        <span class="text-sm font-medium text-slate-200">{{ machine.name }}</span>
                     </div>
-                </div>
+                </li>
+            </ol>
+        </nav>
+        
+        <div class="flex items-center space-y-0 space-x-3">
+            <button class="glass-card px-4 py-2 rounded-xl text-sm font-medium text-slate-300 hover:bg-white/10 transition-all flex items-center border border-white/5">
+                <i class="fas fa-sync-alt mr-2"></i>
+                Forcer l'inventaire
+            </button>
+            <button class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-sm font-medium shadow-lg shadow-blue-900/20 transition-all flex items-center">
+                <i class="fas fa-rocket mr-2"></i>
+                Déployer
+            </button>
+        </div>
+    </div>
+
+    <!-- Header / Status Card -->
+    <div class="glass-card rounded-3xl p-8 border border-white/10 relative overflow-hidden group">
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all duration-700"></div>
+        <div class="relative flex flex-col md:flex-row items-center gap-8">
+            <div class="w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-blue-500/20">
+                <i class="fas fa-desktop text-4xl text-white"></i>
             </div>
-            <div class=\"flex gap-2\">
-                <button class=\"flex-1 md:flex-none bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors\">
-                    <i class=\"fas fa-power-off mr-2 text-orange-500\"></i> Wake on LAN
-                </button>
-                <button class=\"flex-1 md:flex-none bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm\">
-                    <i class=\"fas fa-sync-alt mr-2\"></i> Forcer le contact
-                </button>
+            <div class="flex-1 text-center md:text-left">
+                <div class="flex flex-col md:flex-row md:items-center gap-3">
+                    <h1 class="text-3xl font-bold text-white tracking-tight">{{ machine.name }}</h1>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+                        En Ligne
+                    </span>
+                </div>
+                <p class="text-slate-400 mt-2 flex items-center justify-center md:justify-start">
+                    <i class="fas fa-map-marker-alt mr-2 text-blue-400"></i>
+                    Site : Conseil Départemental du Var (CD83)
+                    <span class="mx-3 text-slate-700">|</span>
+                    <i class="fas fa-clock mr-2 text-indigo-400"></i>
+                    Dernier contact : il y a 5 min
+                </p>
+            </div>
+            <div class="flex gap-4 border-t md:border-t-0 md:border-l border-white/5 pt-6 md:pt-0 md:pl-8">
+                <div class="text-center">
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">OS</p>
+                    <p class="text-lg font-bold text-white mt-1">Windows 11</p>
+                </div>
+                <div class="text-center ml-4">
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Version</p>
+                    <p class="text-lg font-bold text-white mt-1">2.4.1</p>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class=\"grid grid-cols-1 lg:grid-cols-3 gap-8\">
-        <!-- Sidebar Info -->
-        <div class=\"space-y-6\">
-            <!-- Hardware Card -->
-            <div class=\"bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden\">
-                <div class=\"px-5 py-4 border-b border-gray-100 bg-gray-50/50\">
-                    <h3 class=\"text-sm font-bold text-gray-900 flex items-center\">
-                        <i class=\"fas fa-microchip mr-2 text-gray-400\"></i> Informations Système
-                    </h3>
+    <!-- Tabs Navigation -->
+    <div class="flex space-x-1 bg-white/5 p-1 rounded-2xl border border-white/5 w-fit">
+        <button @click="activeTab = 'overview'" :class="activeTab === 'overview' ? 'bg-white/10 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'" class="px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200">
+            Vue d'ensemble
+        </button>
+        <button @click="activeTab = 'hardware'" :class="activeTab === 'hardware' ? 'bg-white/10 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'" class="px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200">
+            Matériel
+        </button>
+        <button @click="activeTab = 'network'" :class="activeTab === 'network' ? 'bg-white/10 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'" class="px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200">
+            Réseau
+        </button>
+        <button @click="activeTab = 'software'" :class="activeTab === 'software' ? 'bg-white/10 text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'" class="px-6 py-2.5 rounded-xl text-sm font-medium transition-all duration-200">
+            Logiciels
+        </button>
+    </div>
+
+    <!-- Tab Contents -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Main Column -->
+        <div class="lg:col-span-2 space-y-8">
+            
+            <!-- Overview Tab -->
+            <div x-show="activeTab === 'overview'" class="space-y-8 animate-fade-in">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-card rounded-2xl p-6 border border-white/5">
+                        <h3 class="text-slate-200 font-bold mb-4 flex items-center">
+                            <i class="fas fa-info-circle mr-2 text-blue-400"></i>
+                            Informations Système
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center py-2 border-b border-white/5">
+                                <span class="text-sm text-slate-400">Nom de l'hôte</span>
+                                <span class="text-sm font-medium text-white">{{ machine.name }}</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/5">
+                                <span class="text-sm text-slate-400">Domaine</span>
+                                <span class="text-sm font-medium text-white">VAR.FR</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2 border-b border-white/5">
+                                <span class="text-sm text-slate-400">Architecture</span>
+                                <span class="text-sm font-medium text-white">x64</span>
+                            </div>
+                            <div class="flex justify-between items-center py-2">
+                                <span class="text-sm text-slate-400">Utilisateur actuel</span>
+                                <span class="text-sm font-medium text-white">j.dupont</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-2xl p-6 border border-white/5">
+                        <h3 class="text-slate-200 font-bold mb-4 flex items-center">
+                            <i class="fas fa-microchip mr-2 text-indigo-400"></i>
+                            État des Ressources
+                        </h3>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between text-xs mb-2">
+                                    <span class="text-slate-400 uppercase tracking-wider">CPU Usage</span>
+                                    <span class="text-white font-bold">12%</span>
+                                </div>
+                                <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-blue-500 rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" style="width: 12%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-2">
+                                    <span class="text-slate-400 uppercase tracking-wider">RAM (8GB)</span>
+                                    <span class="text-white font-bold">4.2 GB utilisés</span>
+                                </div>
+                                <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.5)]" style="width: 52%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-2">
+                                    <span class="text-slate-400 uppercase tracking-wider">Stockage (C:)</span>
+                                    <span class="text-white font-bold">120 GB libres / 256 GB</span>
+                                </div>
+                                <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                                    <div class="h-full bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" style="width: 53%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class=\"p-5 space-y-4\">
-                    <div>
-                        <p class=\"text-xs text-gray-500 uppercase font-semibold\">OS</p>
-                        <p class=\"text-sm text-gray-900 font-medium\">{{ machine.osdistribution_set.first.name }} {{ machine.osdistribution_set.first.version }} ({{ machine.osdistribution_set.first.arch }})</p>
+
+                <!-- Recent Jobs Table in Detail -->
+                <div class="glass-card rounded-3xl border border-white/5 overflow-hidden">
+                    <div class="p-6 border-b border-white/5 flex items-center justify-between">
+                        <h3 class="text-slate-200 font-bold flex items-center">
+                            <i class="fas fa-history mr-2 text-blue-400"></i>
+                            Dernières Activités
+                        </h3>
+                        <button class="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors uppercase tracking-wider">Tout voir</button>
                     </div>
-                    <div>
-                        <p class=\"text-xs text-gray-500 uppercase font-semibold\">Matériel</p>
-                        <p class=\"text-sm text-gray-900 font-medium\">{{ machine.vendor }} - {{ machine.product }}</p>
-                    </div>
-                    <div>
-                        <p class=\"text-xs text-gray-500 uppercase font-semibold\">Numéro de Série</p>
-                        <p class=\"text-sm font-mono text-gray-900\">{{ machine.serial }}</p>
-                    </div>
-                    <div>
-                        <p class=\"text-xs text-gray-500 uppercase font-semibold\">UUID</p>
-                        <p class=\"text-xs font-mono text-gray-500 break-all\">{{ machine.uuid }}</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-white/5">
+                                    <th class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase">Tâche</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase">Statut</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-slate-400 uppercase text-right">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                <tr class="hover:bg-white/5 transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                                                <i class="fab fa-chrome text-blue-400 text-xs"></i>
+                                            </div>
+                                            <span class="text-sm font-medium text-slate-200">Google Chrome Update</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400">Succès</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-slate-400 text-right">Aujourd'hui, 14:20</td>
+                                </tr>
+                                <tr class="hover:bg-white/5 transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center mr-3 group-hover:scale-110 transition-transform">
+                                                <i class="fas fa-shield-alt text-indigo-400 text-xs"></i>
+                                            </div>
+                                            <span class="text-sm font-medium text-slate-200">KB5034441 Security Patch</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-400">En cours</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-slate-400 text-right">Aujourd'hui, 10:15</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- Network Card -->
-            <div class=\"bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden\">
-                <div class=\"px-5 py-4 border-b border-gray-100 bg-gray-50/50\">
-                    <h3 class=\"text-sm font-bold text-gray-900 flex items-center\">
-                        <i class=\"fas fa-network-wired mr-2 text-gray-400\"></i> Réseau
-                    </h3>
-                </div>
-                <div class=\"p-5 space-y-4\">
-                    {% for interface in machine.net_set.all %}
-                    <div class=\"pb-3 border-b border-gray-50 last:border-0 last:pb-0\">
-                        <div class=\"flex justify-between\">
-                            <span class=\"text-xs font-semibold text-gray-500\">IPv4</span>
-                            <span class=\"text-sm font-medium text-gray-900\">{{ interface.ip }}</span>
-                        </div>
-                        <div class=\"flex justify-between mt-1\">
-                            <span class=\"text-xs font-semibold text-gray-500\">MAC</span>
-                            <span class=\"text-sm font-mono text-gray-500\">{{ interface.mac }}</span>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <p class=\"text-sm text-gray-500 italic\">Aucune interface détectée</p>
-                    {% endfor %}
-                </div>
+            <!-- Placeholder for other tabs (Hardware, Network, etc.) -->
+            <div x-show="activeTab === 'hardware'" class="glass-card rounded-2xl p-12 border border-white/5 text-center animate-fade-in">
+                <i class="fas fa-tools text-4xl text-slate-600 mb-4 block"></i>
+                <p class="text-slate-400">Inventaire matériel détaillé en cours de chargement...</p>
             </div>
+            
+            <div x-show="activeTab === 'network'" class="glass-card rounded-2xl p-12 border border-white/5 text-center animate-fade-in">
+                <i class="fas fa-network-wired text-4xl text-slate-600 mb-4 block"></i>
+                <p class="text-slate-400">Interfaces réseau et configuration IP...</p>
+            </div>
+            
+            <div x-show="activeTab === 'software'" class="glass-card rounded-2xl p-12 border border-white/5 text-center animate-fade-in">
+                <i class="fas fa-box-open text-4xl text-slate-600 mb-4 block"></i>
+                <p class="text-slate-400">Liste des logiciels installés (64 paquets détectés)...</p>
+            </div>
+
         </div>
 
-        <!-- Main Tabs Content -->
-        <div class=\"lg:col-span-2 space-y-6\">
-            <!-- Software Table -->
-            <div class=\"bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden\">
-                <div class=\"px-6 py-4 border-b border-gray-100 flex items-center justify-between\">
-                    <h3 class=\"font-bold text-gray-900\">Logiciels Installés ({{ machine.software_set.count }})</h3>
-                    <div class=\"relative\">
-                        <input type=\"text\" placeholder=\"Filtrer...\" class=\"text-xs border border-gray-300 rounded-lg pl-8 pr-3 py-1.5 focus:ring-1 focus:ring-blue-500 outline-none\">
-                        <i class=\"fas fa-search absolute left-2.5 top-2 text-gray-400 text-[10px]\"></i>
-                    </div>
-                </div>
-                <div class=\"overflow-x-auto max-h-[600px] overflow-y-auto\">
-                    <table class=\"min-w-full divide-y divide-gray-200\">
-                        <thead class=\"bg-gray-50 sticky top-0 z-10\">
-                            <tr>
-                                <th class=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Nom</th>
-                                <th class=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Version</th>
-                            </tr>
-                        </thead>
-                        <tbody class=\"bg-white divide-y divide-gray-200\">
-                            {% for soft in machine.software_set.all %}
-                            <tr class=\"hover:bg-gray-50 transition-colors\">
-                                <td class=\"px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900\">{{ soft.name }}</td>
-                                <td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">{{ soft.version }}</td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan=\"2\" class=\"px-6 py-10 text-center text-gray-500 italic\">Aucun logiciel inventorié</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+        <!-- Sidebar / Secondary Column -->
+        <div class="space-y-8">
+            
+            <!-- Quick Actions -->
+            <div class="glass-card rounded-3xl p-6 border border-white/5">
+                <h3 class="text-slate-200 font-bold mb-6 flex items-center">
+                    <i class="fas fa-bolt mr-2 text-yellow-400"></i>
+                    Actions Rapides
+                </h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <button class="w-full flex items-center p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-slate-300 group">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-power-off text-blue-400"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-sm font-bold text-white">Redémarrer</p>
+                            <p class="text-xs text-slate-500">Planifier un reboot</p>
+                        </div>
+                    </button>
+                    <button class="w-full flex items-center p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-slate-300 group">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-terminal text-emerald-400"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-sm font-bold text-white">Console Distante</p>
+                            <p class="text-xs text-slate-500">Ouvrir session CMD/PS</p>
+                        </div>
+                    </button>
+                    <button class="w-full flex items-center p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-slate-300 group">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-file-export text-indigo-400"></i>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-sm font-bold text-white">Exporter Logs</p>
+                            <p class="text-xs text-slate-500">Générer rapport .zip</p>
+                        </div>
+                    </button>
                 </div>
             </div>
+
+            <!-- Notes Section -->
+            <div class="glass-card rounded-3xl p-6 border border-white/5">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-slate-200 font-bold flex items-center">
+                        <i class="fas fa-sticky-note mr-2 text-blue-400"></i>
+                        Notes Administrateur
+                    </h3>
+                    <button class="text-slate-500 hover:text-white transition-colors"><i class="fas fa-edit"></i></button>
+                </div>
+                <div class="p-4 rounded-2xl bg-white/5 border border-white/5 italic text-sm text-slate-400">
+                    "Poste affecté au service de la communication. Attention : double écran 4K configuré."
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
