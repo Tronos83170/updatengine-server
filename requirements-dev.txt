@@ -1,0 +1,15 @@
+## Development reqs (copy of requirements/pip-packages.txt)
+Django==4.2.16
+django-auth-ldap==4.8.0
+django-extensions==3.2.3
+django-grappelli==4.0.1
+django-utils-six==2.0
+lxml==5.3.0
+mysqlclient==2.2.4
+netaddr==1.3.0
+packaging==24.1
+pytz==2024.1
+PyYAML==6.0.2
+typing==3.7.4.3
+unicodecsv==0.14.1
+xlwt==1.3.0
