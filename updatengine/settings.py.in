@@ -1,24 +1,23 @@
 ###############################################################################
-# UpdatEngine - Software Packages Deployment and Administration tool          #
+# UpdatEngine - Software Packages Deployment and Administration tool         #
 #                                                                             #
-# Copyright (C) Yves Guimard - yves.guimard@gmail.com                         #
+# Copyright (C) Yves Guimard - yves.guimard@gmail.com                        #
 # Copyright (C) Noël Martinon - noel.martinon@gmail.com                      #
 #                                                                             #
-# This program is free software; you can redistribute it and/or               #
-# modify it under the terms of the GNU General Public License                 #
-# as published by the Free Software Foundation; either version 2              #
-# of the License, or (at your option) any later version.                      #
+# This program is free software; you can redistribute it and/or              #
+# modify it under the terms of the GNU General Public License                #
+# as published by the Free Software Foundation; either version 2             #
+# of the License, or (at your option) any later version.                     #
 #                                                                             #
-# This program is distributed in the hope that it will be useful,             #
+# This program is distributed in the hope that it will be useful,            #
 # but WITHOUT ANY WARRANTY; without even the implied warranty of              #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the               #
-# GNU General Public License for more details.                                #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the              #
+# GNU General Public License for more details.                               #
 #                                                                             #
-# You should have received a copy of the GNU General Public License           #
-# along with this program; if not, write to the Free Software Foundation,      #
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          #
+# You should have received a copy of the GNU General Public License          #
+# along with this program; if not, write to the Free Software Foundation,    #
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.         #
 ###############################################################################
-
 import os
 import environ
 from django.utils.translation import gettext_lazy as _
@@ -32,6 +31,7 @@ env = environ.Env(
     SHOW_PERM_CONFIG_AUTH=(bool, False),
     DB_PORT=(int, 3306),
     EMAIL_PORT=(int, 25),
+    CACHE_TIMEOUT=(int, 300),
 )
 
 # Project paths
@@ -45,7 +45,6 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 SERVER_NAME = env('SERVER_NAME', default='localhost')
 PORT = env('PORT', default='443')
 PROJECT_URL = f'https://{SERVER_NAME}:{PORT}'
-
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[SERVER_NAME])
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[PROJECT_URL])
 
@@ -55,7 +54,6 @@ TIME_ZONE = env('TZ', default='UTC')
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
 LANGUAGES = (
     ('fr', _('french')),
     ('en', _('english'))
@@ -83,7 +81,6 @@ ADMINS = env.list('ADMINS', default=[])
 MANAGERS = ADMINS
 DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='webmaster@localhost')
 SERVER_EMAIL = env('SERVER_EMAIL', default='root@localhost')
-
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = env('EMAIL_HOST', default='localhost')
 EMAIL_PORT = env('EMAIL_PORT')
@@ -94,6 +91,30 @@ EMAIL_USE_SSL = env('EMAIL_USE_SSL')
 
 # UE specific
 SHOW_PERM_CONFIG_AUTH = env('SHOW_PERM_CONFIG_AUTH')
+
+# ---------------------------------------------------------------------------
+# Cache — Redis (django-redis)
+# ---------------------------------------------------------------------------
+_REDIS_URL = env('REDIS_URL', default='redis://redis:6379/0')
+_CACHE_TIMEOUT = env('CACHE_TIMEOUT')
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': _REDIS_URL,
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            # Ignore Redis connectivity errors in non-critical cache ops
+            'IGNORE_EXCEPTIONS': True,
+        },
+        'TIMEOUT': _CACHE_TIMEOUT,
+        'KEY_PREFIX': 'ue',
+    }
+}
+
+# Store Django sessions in Redis instead of the database
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 # Grappelli
 GRAPPELLI_ADMIN_TITLE = 'UpdatEngine'
@@ -160,7 +181,6 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(PROJECT_DIR, 'media')
 MEDIA_URL = PROJECT_URL + '/media/'
 STATIC_ROOT = os.path.join(PROJECT_DIR, 'static')
-
 STATICFILES_DIRS = (os.path.join(PROJECT_DIR, 'files'),)
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
