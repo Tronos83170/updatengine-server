@@ -2,8 +2,8 @@
 
 [![CI/CD Pipeline](https://github.com/Tronos83170/updatengine-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Tronos83170/updatengine-server/actions/workflows/ci.yml)
 [![License: GPL-2.0](https://img.shields.io/badge/License-GPL--2.0-blue.svg)](https://github.com/Tronos83170/updatengine-server/blob/master/LICENSE)
-[![Python Version](https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue)](https://www.python.org/)
-[![Django Version](https://img.shields.io/badge/django-4.2%20LTS-green.svg)](https://www.djangoproject.com/)
+[![Python Version](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
+[![Django Version](https://img.shields.io/badge/django-5.2%20LTS-green.svg)](https://www.djangoproject.com/)
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://github.com/Tronos83170/updatengine-server/blob/master/Dockerfile)
 
 # UpdatEngine-server
