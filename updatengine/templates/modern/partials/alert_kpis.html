@@ -1,0 +1,83 @@
+{% load i18n %}
+<!-- KPI Cards for Alerts Dashboard - HTMX refreshable partial -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+  <!-- Total Critical -->
+  <div class="bg-white rounded-xl shadow-sm border border-red-100 p-5 flex items-center gap-4"
+       x-data="{ pulse: {{ total_critical }} > 0 }">
+    <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center"
+         :class="pulse ? 'bg-red-100 animate-pulse' : 'bg-gray-100'">
+      <i class="fas fa-exclamation-circle text-xl" :class="pulse ? 'text-red-600' : 'text-gray-400'"></i>
+    </div>
+    <div>
+      <div class="text-2xl font-bold" :class="pulse ? 'text-red-700' : 'text-gray-700'">{{ total_critical }}</div>
+      <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Alertes Critiques</div>
+      {% if total_critical > 0 %}
+        <div class="text-xs text-red-500 mt-0.5">Action requise</div>
+      {% else %}
+        <div class="text-xs text-green-500 mt-0.5">Tout est OK</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Total Warnings -->
+  <div class="bg-white rounded-xl shadow-sm border border-yellow-100 p-5 flex items-center gap-4">
+    <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center bg-yellow-100">
+      <i class="fas fa-exclamation-triangle text-xl text-yellow-600"></i>
+    </div>
+    <div>
+      <div class="text-2xl font-bold text-yellow-700">{{ total_warning }}</div>
+      <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Avertissements</div>
+      <div class="text-xs text-gray-400 mt-0.5">A surveiller</div>
+    </div>
+  </div>
+
+  <!-- Stale Machines -->
+  <div class="bg-white rounded-xl shadow-sm border border-orange-100 p-5 flex items-center gap-4">
+    <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center bg-orange-100">
+      <i class="fas fa-clock text-xl text-orange-600"></i>
+    </div>
+    <div>
+      <div class="text-2xl font-bold text-orange-700">{{ stale_machines }}</div>
+      <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Machines inactives</div>
+      <div class="text-xs text-gray-400 mt-0.5">&gt; 7 jours sans contact</div>
+    </div>
+  </div>
+
+  <!-- Acknowledged -->
+  <div class="bg-white rounded-xl shadow-sm border border-green-100 p-5 flex items-center gap-4">
+    <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center bg-green-100">
+      <i class="fas fa-check-double text-xl text-green-600"></i>
+    </div>
+    <div>
+      <div class="text-2xl font-bold text-green-700">{{ total_acknowledged }}</div>
+      <div class="text-xs font-medium text-gray-500 uppercase tracking-wide">Acquittées</div>
+      <div class="text-xs text-gray-400 mt-0.5">Prises en charge</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Progress bar: resolution rate -->
+{% if total_critical > 0 or total_warning > 0 %}
+<div class="mt-4 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+  <div class="flex items-center justify-between mb-2">
+    <span class="text-sm font-medium text-gray-600">Taux de résolution</span>
+    <span class="text-sm font-bold text-gray-800">
+      {% if total_acknowledged > 0 %}
+        {% widthratio total_acknowledged total_alerts 100 %}%
+      {% else %}
+        0%
+      {% endif %}
+    </span>
+  </div>
+  <div class="w-full bg-gray-100 rounded-full h-2">
+    <div class="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500"
+         style="width: {% if total_acknowledged > 0 %}{% widthratio total_acknowledged total_alerts 100 %}{% else %}0{% endif %}%"></div>
+  </div>
+  <div class="flex justify-between text-xs text-gray-400 mt-1">
+    <span>{{ total_acknowledged }} acquittées</span>
+    <span>{{ total_alerts }} total</span>
+  </div>
+</div>
+{% endif %}
