@@ -1,0 +1,21 @@
+# Modern UI URL patterns - namespace: 'modern'
+# Include this in the main urls.py with:
+#   path('modern/', include('updatengine.urls_modern', namespace='modern'))
+
+from django.urls import path
+from . import views_modern
+
+app_name = 'modern'
+
+urlpatterns = [
+    # Dashboard
+    path('dashboard/', views_modern.dashboard, name='dashboard'),
+
+    # Inventory / Parc
+    path('inventory/', views_modern.inventory_view, name='inventory'),
+    path('machine/<int:machine_id>/', views_modern.machine_detail, name='machine_detail'),
+
+    # HTMX partials
+    path('api/dashboard-stats/', views_modern.htmx_dashboard_stats, name='dashboard_stats'),
+    path('api/machine-search/', views_modern.api_machine_search, name='machine_search'),
+]
