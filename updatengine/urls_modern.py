@@ -18,4 +18,7 @@ urlpatterns = [
     # HTMX partials
     path('api/dashboard-stats/', views_modern.htmx_dashboard_stats, name='dashboard_stats'),
     path('api/machine-search/', views_modern.api_machine_search, name='machine_search'),
+
+    # Deploy
+    path('deploy/', views_modern.deploy_overview, name='deploy'),
 ]
