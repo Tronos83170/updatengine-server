@@ -36,127 +36,227 @@
     /* HTMX loading indicator */
     .htmx-indicator { display: none; }
     .htmx-request .htmx-indicator { display: flex; }
+    /* Toast animations */
+    @keyframes slideInRight {
+      from { transform: translateX(100%); opacity: 0; }
+      to   { transform: translateX(0);   opacity: 1; }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to   { opacity: 0; }
+    }
+    .toast-enter { animation: slideInRight 0.3s ease-out forwards; }
+    .toast-leave { animation: fadeOut 0.4s ease-in forwards; }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body class="bg-gray-50 font-sans" hx-boost="true">
-  <div class="flex h-screen overflow-hidden">
 
-    <!-- ====== SIDEBAR ====== -->
-    <aside
-      class="flex flex-col bg-slate-900 text-white transition-all duration-300 z-40 h-full"
-      :class="sidebarOpen ? 'w-64' : 'w-16'"
-    >
-      <!-- Logo -->
-      <div class="flex items-center gap-3 px-4 py-5 border-b border-slate-700">
-        <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
-          <i class="fas fa-server text-white text-sm"></i>
-        </div>
-        <span x-show="sidebarOpen" x-cloak class="font-bold text-lg tracking-tight">UpdateEngine</span>
+<!-- ====== TOAST CONTAINER ====== -->
+<div id="toast-container"
+     class="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none"
+     aria-live="polite">
+</div>
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- ====== SIDEBAR ====== -->
+  <aside
+    class="flex flex-col bg-slate-900 text-white transition-all duration-300 z-40 h-full"
+    :class="sidebarOpen ? 'w-64' : 'w-16'"
+  >
+    <!-- Logo -->
+    <div class="flex items-center gap-3 px-4 py-5 border-b border-slate-700">
+      <div class="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-server text-white text-sm"></i>
       </div>
-
-      <!-- Nav items -->
-      <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
-        <a href="{% url 'modern:dashboard' %}" class="sidebar-item {% block nav_dashboard %}{% endblock %}">
-          <i class="fas fa-th-large w-5 flex-shrink-0"></i>
-          <span x-show="sidebarOpen" x-cloak>Dashboard</span>
-        </a>
-        <a href="{% url 'modern:inventory' %}" class="sidebar-item {% block nav_inventory %}{% endblock %}">
-          <i class="fas fa-desktop w-5 flex-shrink-0"></i>
-          <span x-show="sidebarOpen" x-cloak>Parc machines</span>
-        </a>
-        <a href="{% url 'modern:deploy' %}" class="sidebar-item {% block nav_deploy %}{% endblock %}">
-          <i class="fas fa-rocket w-5 flex-shrink-0"></i>
-          <span x-show="sidebarOpen" x-cloak>Deployements</span>
-        </a>
-        <a href="/deployment/" class="sidebar-item {% block nav_software %}{% endblock %}">
-          <i class="fas fa-box w-5 flex-shrink-0"></i>
-          <span x-show="sidebarOpen" x-cloak>Paquets</span>
-        </a>
-        <div class="border-t border-slate-700 my-3"></div>
-        <a href="/admin/" class="sidebar-item">
-          <i class="fas fa-cog w-5 flex-shrink-0"></i>
-          <span x-show="sidebarOpen" x-cloak>Administration</span>
-        </a>
-      </nav>
-
-      <!-- User / bottom -->
-      <div class="px-2 py-3 border-t border-slate-700">
-        <a href="/logout/" class="sidebar-item">
-          <i class="fas fa-sign-out-alt w-5 flex-shrink-0"></i>
-          <span x-show="sidebarOpen" x-cloak>Deconnexion</span>
-        </a>
-      </div>
-    </aside>
-
-    <!-- ====== MAIN CONTENT ====== -->
-    <div class="flex-1 flex flex-col overflow-hidden">
-
-      <!-- Top bar -->
-      <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-4 shadow-sm">
-        <!-- Toggle sidebar -->
-        <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-          <i class="fas fa-bars text-xl"></i>
-        </button>
-
-        <!-- Global search -->
-        <div class="flex-1 max-w-lg relative" x-data="{ showResults: false }">
-          <div class="relative">
-            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-            <input
-              type="text"
-              id="global-search"
-              placeholder="Rechercher une machine..."
-              class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-gray-50"
-              hx-get="{% url 'modern:machine_search' %}"
-              hx-trigger="keyup changed delay:300ms"
-              hx-target="#search-results"
-              @focus="showResults = true"
-              @blur="setTimeout(() => showResults = false, 200)"
-              name="q"
-              autocomplete="off"
-            />
-          </div>
-          <div id="search-results" x-show="showResults" class="absolute top-full mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 z-50 min-h-0"></div>
-        </div>
-
-        <div class="ml-auto flex items-center gap-4">
-          <!-- Live refresh indicator -->
-          <div class="flex items-center gap-2 text-xs text-gray-500">
-            <span class="online-dot"></span>
-            <span>Live</span>
-          </div>
-          <!-- User -->
-          <div class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
-              <span class="text-white text-sm font-bold">{{ request.user.username|slice:':1'|upper }}</span>
-            </div>
-            <span class="text-sm text-gray-700 font-medium">{{ request.user.username }}</span>
-          </div>
-        </div>
-      </header>
-
-      <!-- Page content -->
-      <main class="flex-1 overflow-y-auto p-6" id="main-content">
-        <!-- Breadcrumb -->
-        {% block breadcrumb %}{% endblock %}
-
-        <!-- Flash messages -->
-        {% if messages %}
-        <div class="mb-4 space-y-2">
-          {% for message in messages %}
-          <div class="px-4 py-3 rounded-lg text-sm {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
-            {{ message }}
-          </div>
-          {% endfor %}
-        </div>
-        {% endif %}
-
-        {% block content %}{% endblock %}
-      </main>
+      <span x-show="sidebarOpen" x-cloak class="font-bold text-lg tracking-tight">UpdateEngine</span>
     </div>
-  </div>
 
-  {% block extra_js %}{% endblock %}
+    <!-- Nav items -->
+    <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+      <a href="{% url 'modern:dashboard' %}" class="sidebar-item {% block nav_dashboard %}{% endblock %}">
+        <i class="fas fa-th-large w-5 flex-shrink-0"></i>
+        <span x-show="sidebarOpen" x-cloak>Dashboard</span>
+      </a>
+      <a href="{% url 'modern:inventory' %}" class="sidebar-item {% block nav_inventory %}{% endblock %}">
+        <i class="fas fa-desktop w-5 flex-shrink-0"></i>
+        <span x-show="sidebarOpen" x-cloak>Parc machines</span>
+      </a>
+      <a href="{% url 'modern:deploy' %}" class="sidebar-item {% block nav_deploy %}{% endblock %}">
+        <i class="fas fa-rocket w-5 flex-shrink-0"></i>
+        <span x-show="sidebarOpen" x-cloak>Deployements</span>
+      </a>
+      <a href="/deployment/" class="sidebar-item {% block nav_software %}{% endblock %}">
+        <i class="fas fa-box w-5 flex-shrink-0"></i>
+        <span x-show="sidebarOpen" x-cloak>Paquets</span>
+      </a>
+
+      <!-- Alertes avec badge dynamique HTMX -->
+      <a href="{% url 'modern:alerts' %}" class="sidebar-item {% block nav_alerts %}{% endblock %} relative">
+        <i class="fas fa-bell w-5 flex-shrink-0"></i>
+        <span x-show="sidebarOpen" x-cloak>Alertes</span>
+        <!-- Badge: refreshed every 60s via HTMX -->
+        <span
+          hx-get="{% url 'modern:alert_badge' %}"
+          hx-trigger="load, every 60s"
+          hx-target="this"
+          hx-swap="outerHTML"
+          class="ml-auto">
+        </span>
+      </a>
+
+      <div class="border-t border-slate-700 my-3"></div>
+      <a href="/admin/" class="sidebar-item">
+        <i class="fas fa-cog w-5 flex-shrink-0"></i>
+        <span x-show="sidebarOpen" x-cloak>Administration</span>
+      </a>
+    </nav>
+
+    <!-- User / bottom -->
+    <div class="px-2 py-3 border-t border-slate-700">
+      <a href="/logout/" class="sidebar-item">
+        <i class="fas fa-sign-out-alt w-5 flex-shrink-0"></i>
+        <span x-show="sidebarOpen" x-cloak>Deconnexion</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- ====== MAIN CONTENT ====== -->
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <!-- Top bar -->
+    <header class="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-4 shadow-sm">
+      <!-- Toggle sidebar -->
+      <button @click="sidebarOpen = !sidebarOpen" class="text-gray-500 hover:text-gray-700 focus:outline-none">
+        <i class="fas fa-bars text-xl"></i>
+      </button>
+      <!-- Global search -->
+      <div class="flex-1 max-w-lg relative" x-data="{ showResults: false }">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          <input
+            type="text"
+            id="global-search"
+            placeholder="Rechercher une machine..."
+            class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 bg-gray-50"
+            hx-get="{% url 'modern:machine_search' %}"
+            hx-trigger="keyup changed delay:300ms"
+            hx-target="#search-results"
+            @focus="showResults = true"
+            @blur="setTimeout(() => showResults = false, 200)"
+            name="q"
+            autocomplete="off"
+          />
+        </div>
+        <div id="search-results" x-show="showResults" class="absolute top-full mt-1 w-full bg-white rounded-lg shadow-lg border border-gray-200 z-50 min-h-0"></div>
+      </div>
+      <div class="ml-auto flex items-center gap-4">
+        <!-- Alert bell shortcut -->
+        <a href="{% url 'modern:alerts' %}" class="relative text-gray-500 hover:text-red-600 transition-colors"
+           title="Alertes">
+          <i class="fas fa-bell text-xl"></i>
+          <span
+            id="header-alert-badge"
+            hx-get="{% url 'modern:alert_badge' %}"
+            hx-trigger="load, every 60s"
+            hx-target="this"
+            hx-swap="outerHTML"
+            class="absolute -top-1 -right-1">
+          </span>
+        </a>
+        <!-- Live refresh indicator -->
+        <div class="flex items-center gap-2 text-xs text-gray-500">
+          <span class="online-dot"></span>
+          <span>Live</span>
+        </div>
+        <!-- User -->
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
+            <span class="text-white text-sm font-bold">{{ request.user.username|slice:':1'|upper }}</span>
+          </div>
+          <span class="text-sm text-gray-700 font-medium">{{ request.user.username }}</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="flex-1 overflow-y-auto p-6" id="main-content">
+      <!-- Breadcrumb -->
+      {% block breadcrumb %}{% endblock %}
+      <!-- Flash messages -->
+      {% if messages %}
+      <div class="mb-4 space-y-2">
+        {% for message in messages %}
+        <div class="px-4 py-3 rounded-lg text-sm {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<!-- ====== TOAST JS ====== -->
+<script>
+/**
+ * showToast(message, type, duration)
+ * type: 'critical' | 'warning' | 'success' | 'info'
+ * Shows a slide-in toast notification from the right.
+ */
+function showToast(message, type = 'info', duration = 5000) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+
+  const colors = {
+    critical: 'bg-red-600 text-white border-red-700',
+    warning:  'bg-yellow-500 text-white border-yellow-600',
+    success:  'bg-green-600 text-white border-green-700',
+    info:     'bg-blue-600 text-white border-blue-700',
+  };
+  const icons = {
+    critical: 'fa-exclamation-circle',
+    warning:  'fa-exclamation-triangle',
+    success:  'fa-check-circle',
+    info:     'fa-info-circle',
+  };
+
+  const toast = document.createElement('div');
+  toast.className = [
+    'pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-xl border',
+    'max-w-sm text-sm font-medium toast-enter',
+    colors[type] || colors.info
+  ].join(' ');
+  toast.innerHTML = `
+    <i class="fas ${icons[type] || icons.info} text-lg flex-shrink-0"></i>
+    <span class="flex-1">${message}</span>
+    <button onclick="this.closest('.toast-leave, div').classList.add('toast-leave'); setTimeout(() => this.closest('div').remove(), 400)"
+            class="ml-2 opacity-75 hover:opacity-100 focus:outline-none">
+      <i class="fas fa-times"></i>
+    </button>
+  `;
+  container.appendChild(toast);
+
+  // Auto-dismiss
+  setTimeout(() => {
+    toast.classList.add('toast-leave');
+    setTimeout(() => toast.remove(), 400);
+  }, duration);
+}
+
+// HTMX: show toast on alert events dispatched from page
+document.addEventListener('htmx:afterRequest', function(evt) {
+  const hdr = evt.detail?.xhr?.getResponseHeader('X-Alert-Toast');
+  if (hdr) {
+    try {
+      const data = JSON.parse(hdr);
+      showToast(data.message, data.type || 'info');
+    } catch(e) {}
+  }
+});
+</script>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>
