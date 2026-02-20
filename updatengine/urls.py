@@ -1,22 +1,22 @@
 ###############################################################################
-# UpdatEngine - Software Packages Deployment and Administration tool          #
+# UpdatEngine - Software Packages Deployment and Administration tool         #
 #                                                                             #
-# Copyright (C) Yves Guimard - yves.guimard@gmail.com                         #
-# Copyright (C) Noël Martinon - noel.martinon@gmail.com                       #
+# Copyright (C) Yves Guimard - yves.guimard@gmail.com                        #
+# Copyright (C) Noel Martinon - noel.martinon@gmail.com                      #
 #                                                                             #
-# This program is free software; you can redistribute it and/or               #
-# modify it under the terms of the GNU General Public License                 #
-# as published by the Free Software Foundation; either version 2               #
-# of the License, or (at your option) any later version.                      #
+# This program is free software; you can redistribute it and/or              #
+# modify it under the terms of the GNU General Public License                #
+# as published by the Free Software Foundation; either version 2             #
+# of the License, or (at your option) any later version.                     #
 #                                                                             #
-# This program is distributed in the hope that it will be useful,             #
+# This program is distributed in the hope that it will be useful,            #
 # but WITHOUT ANY WARRANTY; without even the implied warranty of              #
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the                 #
-# GNU General Public License for more details.                                #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the               #
+# GNU General Public License for more details.                               #
 #                                                                             #
-# You should have received a copy of the GNU General Public License           #
-# along with this program; if not, write to the Free Software Foundation,     #
-# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          #
+# You should have received a copy of the GNU General Public License          #
+# along with this program; if not, write to the Free Software Foundation,    #
+# Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.         #
 ###############################################################################
 from django.urls import include, path, re_path, reverse_lazy
 from django.contrib import admin
@@ -24,7 +24,6 @@ from inventory.views import post
 from django.contrib.admin import site
 import adminactions.actions as actions
 from .views import check_version, ChangePasswordView, ChangePasswordDoneView
-from . import views_modern
 
 # Import admin module in each installed application
 admin.autodiscover()
@@ -34,12 +33,8 @@ site.add_action(actions.mass_update)
 site.add_action(actions.export_as_csv)
 
 urlpatterns = [
-    # Modern UI
-    path('modern/dashboard/', views_modern.dashboard, name='modern_dashboard'),
-    path('modern/inventory/', views_modern.inventory_view, name='modern_inventory'),
-    path('modern/machine/<int:machine_id>/', views_modern.machine_detail, name='modern_machine_detail'),
-    path('modern/api/dashboard-stats/', views_modern.htmx_dashboard_stats, name='modern_api_stats'),
-    path('modern/api/machine-search/', views_modern.api_machine_search, name='modern_api_search'),
+    # Modern UI (namespaced: 'modern')
+    path('modern/', include('updatengine.urls_modern', namespace='modern')),
 
     # Legacy & API
     re_path(r'^admin/', admin.site.urls),
