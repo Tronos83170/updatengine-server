@@ -274,3 +274,169 @@ def deploy_overview(request):
         'total_packages': package.objects.count(),
     }
     return render(request, 'modern/deploy.html', context)
+
+
+# ---------------------------------------------------------------------------
+# Alerting & Rapports
+# ---------------------------------------------------------------------------
+
+# Severity levels based on status string
+ERROR_STATUSES = ('Error', 'Installation error', 'Download error', 'Execution error')
+WARN_STATUSES = ('Install in progress',)
+STALE_DAYS = 7        # machines hors contact > 7j
+CRITICAL_OFFLINE_MINUTES = 24 * 60  # machine en ligne puis disparue > 24h
+
+
+def _classify_alert(status, date, cutoff):
+    """Return (severity, label) from a packagehistory status string."""
+    s = (status or '').lower()
+    if 'error' in s or 'fail' in s:
+        return 'critical', 'Erreur deploiement'
+    if 'timeout' in s:
+        return 'critical', 'Timeout installation'
+    if 'progress' in s:
+        return 'warning', 'Installation en cours'
+    if 'completed' in s or 'success' in s:
+        return 'success', 'Succes'
+    return 'info', status or 'Inconnu'
+
+
+@login_required
+def alerts_view(request):
+    """Page principale Alertes & Rapports."""
+    cutoff = _online_cutoff()
+    since_24h = timezone.now() - timedelta(hours=24)
+    since_7d  = timezone.now() - timedelta(days=7)
+
+    # ---- Critical errors (last 24h) ----------------------------------------
+    critical_errors = (
+        packagehistory.objects
+        .filter(date__gte=since_24h, status__startswith='Error')
+        .select_related('machine', 'package')
+        .order_by('-date')[:50]
+    )
+
+    # ---- Machines hors contact (> STALE_DAYS) ------------------------------
+    stale_machines = (
+        machine.objects
+        .filter(
+            Q(lastsave__lt=since_7d) | Q(lastsave__isnull=True)
+        )
+        .select_related('entity')
+        .order_by('lastsave')[:30]
+    )
+
+    # ---- Deployments still 'in progress' > 2h (stuck) ---------------------
+    stuck_cutoff = timezone.now() - timedelta(hours=2)
+    stuck_deployments = (
+        packagehistory.objects
+        .filter(status='Install in progress', date__lte=stuck_cutoff)
+        .select_related('machine', 'package')
+        .order_by('date')[:20]
+    )
+
+    # ---- Summary KPIs -------------------------------------------------------
+    total_errors_24h    = packagehistory.objects.filter(date__gte=since_24h, status__startswith='Error').count()
+    total_errors_7d     = packagehistory.objects.filter(date__gte=since_7d,  status__startswith='Error').count()
+    total_stale         = stale_machines.count()
+    total_stuck         = stuck_deployments.count()
+    total_critical      = total_errors_24h + total_stuck
+
+    # ---- Severity filter (GET param) ----------------------------------------
+    severity_filter = request.GET.get('severity', '')
+
+    # ---- Build unified alert list for display --------------------------------
+    alerts = []
+    for ph in critical_errors:
+        severity, label = _classify_alert(ph.status, ph.date, cutoff)
+        if severity_filter and severity_filter != severity:
+            continue
+        alerts.append({
+            'severity': severity,
+            'label': label,
+            'machine': ph.machine,
+            'package': ph.package,
+            'status': ph.status,
+            'date': ph.date,
+            'type': 'deploy_error',
+        })
+    for ph in stuck_deployments:
+        if severity_filter and severity_filter not in ('warning', 'critical'):
+            continue
+        alerts.append({
+            'severity': 'warning',
+            'label': 'Deploiement bloque',
+            'machine': ph.machine,
+            'package': ph.package,
+            'status': ph.status,
+            'date': ph.date,
+            'type': 'stuck',
+        })
+
+    context = {
+        'alerts': alerts,
+        'stale_machines': stale_machines,
+        'total_errors_24h': total_errors_24h,
+        'total_errors_7d': total_errors_7d,
+        'total_stale': total_stale,
+        'total_stuck': total_stuck,
+        'total_critical': total_critical,
+        'severity_filter': severity_filter,
+        'cutoff': cutoff,
+    }
+    return render(request, 'modern/alerts.html', context)
+
+
+@login_required
+def htmx_alert_badge(request):
+    """HTMX partial: returns just the badge count for the sidebar."""
+    since_24h = timezone.now() - timedelta(hours=24)
+    stuck_cutoff = timezone.now() - timedelta(hours=2)
+    count = (
+        packagehistory.objects.filter(date__gte=since_24h, status__startswith='Error').count()
+        + packagehistory.objects.filter(status='Install in progress', date__lte=stuck_cutoff).count()
+    )
+    return render(request, 'modern/partials/alert_badge.html', {'count': count})
+
+
+@login_required
+def htmx_alerts_rows(request):
+    """HTMX partial: returns alert table rows for live refresh."""
+    cutoff = _online_cutoff()
+    since_24h = timezone.now() - timedelta(hours=24)
+    stuck_cutoff = timezone.now() - timedelta(hours=2)
+
+    critical_errors = (
+        packagehistory.objects
+        .filter(date__gte=since_24h, status__startswith='Error')
+        .select_related('machine', 'package')
+        .order_by('-date')[:50]
+    )
+    stuck_deployments = (
+        packagehistory.objects
+        .filter(status='Install in progress', date__lte=stuck_cutoff)
+        .select_related('machine', 'package')
+        .order_by('date')[:20]
+    )
+    alerts = []
+    for ph in critical_errors:
+        severity, label = _classify_alert(ph.status, ph.date, cutoff)
+        alerts.append({'severity': severity, 'label': label, 'machine': ph.machine,
+                       'package': ph.package, 'status': ph.status, 'date': ph.date, 'type': 'deploy_error'})
+    for ph in stuck_deployments:
+        alerts.append({'severity': 'warning', 'label': 'Deploiement bloque', 'machine': ph.machine,
+                       'package': ph.package, 'status': ph.status, 'date': ph.date, 'type': 'stuck'})
+
+    return render(request, 'modern/partials/alerts_rows.html', {'alerts': alerts, 'cutoff': cutoff})
+
+
+@login_required
+def api_alert_count(request):
+    """JSON endpoint: returns critical alert count (for polling)."""
+    since_24h = timezone.now() - timedelta(hours=24)
+    stuck_cutoff = timezone.now() - timedelta(hours=2)
+    count = (
+        packagehistory.objects.filter(date__gte=since_24h, status__startswith='Error').count()
+        + packagehistory.objects.filter(status='Install in progress', date__lte=stuck_cutoff).count()
+    )
+    return JsonResponse({'count': count, 'has_critical': count > 0})
