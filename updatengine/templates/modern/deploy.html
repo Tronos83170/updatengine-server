@@ -1,106 +1,157 @@
-{% extends \"modern/base.html\" %}
+{% extends "modern/base_modern.html" %}
+{% block title %}Deployements - UpdateEngine{% endblock %}
+{% block nav_deploy %}active{% endblock %}
 
-{% block title %}Déploiements - UpdatEngine{% endblock %}
+{% block breadcrumb %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+  <ol class="flex items-center space-x-2 text-sm text-gray-500">
+    <li><i class="fas fa-home"></i></li>
+    <li><span class="mx-2">/</span></li>
+    <li class="text-gray-900 font-medium">Deployements</li>
+  </ol>
+</nav>
+{% endblock %}
 
 {% block content %}
-<div class=\"max-w-7xl mx-auto\">
-    <!-- Header -->
-    <div class=\"mb-8 flex justify-between items-center\">
+<div class="space-y-6">
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Gestion des Deployements</h1>
+      <p class="text-sm text-gray-500 mt-1">Planification et suivi des paquets logiciels sur le parc</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <a href="/deployment/" class="flex items-center gap-2 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg text-sm font-medium transition-colors shadow-sm">
+        <i class="fas fa-rocket"></i>
+        Gestion complete
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center gap-4">
+      <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 text-xl">
+        <i class="fas fa-box"></i>
+      </div>
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wider">Paquets</p>
+        <p class="text-2xl font-bold text-gray-900">{{ total_packages }}</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center gap-4">
+      <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 text-xl">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wider">Succes (24h)</p>
+        <p class="text-2xl font-bold text-gray-900">{{ success_count }}</p>
+      </div>
+    </div>
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center gap-4">
+      <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-600 text-xl">
+        <i class="fas fa-times-circle"></i>
+      </div>
+      <div>
+        <p class="text-xs text-gray-500 uppercase tracking-wider">Erreurs (24h)</p>
+        <p class="text-2xl font-bold text-gray-900">{{ error_count }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Deployment History -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+      <h2 class="text-base font-semibold text-gray-900">
+        <i class="fas fa-history mr-2 text-primary-500"></i>
+        Historique recent (24h)
+      </h2>
+      <a href="/deployment/" class="text-sm text-primary-600 hover:underline">Voir tout</a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Machine</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paquet</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          {% for h in recent_history %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-2">
+                <i class="fas fa-desktop text-gray-400 text-sm"></i>
+                <a href="{% url 'modern:machine_detail' h.machine.id %}" class="text-sm font-medium text-primary-600 hover:underline">
+                  {{ h.machine.name }}
+                </a>
+              </div>
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-700">{{ h.package.name }}</td>
+            <td class="px-4 py-3">
+              {% if 'completed' in h.status|lower or 'success' in h.status|lower %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                <i class="fas fa-check mr-1"></i> Succes
+              </span>
+              {% elif 'error' in h.status|lower or 'fail' in h.status|lower %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-700">
+                <i class="fas fa-times mr-1"></i> Erreur
+              </span>
+              {% elif 'progress' in h.status|lower %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                <i class="fas fa-spinner fa-spin mr-1"></i> En cours
+              </span>
+              {% else %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                {{ h.status }}
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 text-sm text-gray-500">{{ h.date|date:'d/m/Y H:i' }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+              <i class="fas fa-inbox text-3xl text-gray-300 mb-2 block"></i>
+              Aucun deployement dans les dernieres 24h
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Quick Links -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <a href="/deployment/package/" class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:border-primary-300 hover:shadow-md transition-all group">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center text-primary-600 text-xl group-hover:bg-primary-200 transition-colors">
+          <i class="fas fa-box-open"></i>
+        </div>
         <div>
-            <h1 class=\"text-2xl font-bold text-gray-900 font-inter\">Gestion des Déploiements</h1>
-            <p class=\"mt-1 text-sm text-gray-500 italic\">Planification et suivi des paquets logiciels sur le parc</p>
+          <h3 class="font-semibold text-gray-900">Gestion des paquets</h3>
+          <p class="text-sm text-gray-500">Creer, modifier et publier des paquets</p>
         </div>
-        <div class=\"flex space-x-3\">
-            <button class=\"bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors shadow-sm\">
-                <i class=\"fas fa-rocket mr-2\"></i> Lancer un déploiement
-            </button>
+        <i class="fas fa-chevron-right ml-auto text-gray-400 group-hover:text-primary-500 transition-colors"></i>
+      </div>
+    </a>
+    <a href="/deployment/packageprofile/" class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:border-primary-300 hover:shadow-md transition-all group">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 text-xl group-hover:bg-purple-200 transition-colors">
+          <i class="fas fa-layer-group"></i>
         </div>
-    </div>
+        <div>
+          <h3 class="font-semibold text-gray-900">Profils de deploiement</h3>
+          <p class="text-sm text-gray-500">Grouper les paquets par profil</p>
+        </div>
+        <i class="fas fa-chevron-right ml-auto text-gray-400 group-hover:text-purple-500 transition-colors"></i>
+      </div>
+    </a>
+  </div>
 
-    <!-- Active Deployments (Real-time progress) -->
-    <div class=\"grid grid-cols-1 md:grid-cols-2 gap-6 mb-8\">
-        <div class=\"bg-white p-6 rounded-xl border border-gray-200 shadow-sm border-l-4 border-l-blue-500\">
-            <div class=\"flex justify-between items-start mb-4\">
-                <div>
-                    <h3 class=\"text-sm font-bold text-gray-900\">Google Chrome 122.0.6261.129</h3>
-                    <p class=\"text-xs text-gray-500\">Mise à jour de sécurité critique</p>
-                </div>
-                <span class=\"text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded\">En cours</span>
-            </div>
-            <div class=\"w-full bg-gray-100 rounded-full h-2 mb-2\">
-                <div class=\"bg-blue-500 h-2 rounded-full\" style=\"width: 65%\"></div>
-            </div>
-            <div class=\"flex justify-between items-center text-xs\">
-                <span class=\"text-gray-500\">812/1250 agents terminés</span>
-                <span class=\"font-bold text-blue-600\">65%</span>
-            </div>
-        </div>
-
-        <div class=\"bg-white p-6 rounded-xl border border-gray-200 shadow-sm border-l-4 border-l-orange-400\">
-            <div class=\"flex justify-between items-start mb-4\">
-                <div>
-                    <h3 class=\"text-sm font-bold text-gray-900\">Adobe Acrobat Reader DC</h3>
-                    <p class=\"text-xs text-gray-500\">Installation standard</p>
-                </div>
-                <span class=\"text-xs font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded\">Initialisation</span>
-            </div>
-            <div class=\"w-full bg-gray-100 rounded-full h-2 mb-2\">
-                <div class=\"bg-orange-400 h-2 rounded-full\" style=\"width: 12%\"></div>
-            </div>
-            <div class=\"flex justify-between items-center text-xs\">
-                <span class=\"text-gray-500\">150/1250 agents terminés</span>
-                <span class=\"font-bold text-orange-600\">12%</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Table Section -->
-    <div class=\"bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden\">
-        <div class=\"px-6 py-4 border-b border-gray-100 flex items-center justify-between\">
-            <h3 class=\"font-bold text-gray-900\">Historique des Paquets</h3>
-            <div class=\"flex items-center space-x-2\">
-                <input type=\"text\" placeholder=\"Filtrer...\" class=\"text-xs border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500\">
-            </div>
-        </div>
-        <div class=\"overflow-x-auto\">
-            <table class=\"min-w-full divide-y divide-gray-200\">
-                <thead class=\"bg-gray-50\">
-                    <tr>
-                        <th class=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Paquet / Logiciel</th>
-                        <th class=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Version</th>
-                        <th class=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Cible</th>
-                        <th class=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Succès</th>
-                        <th class=\"px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider\">Dernière Action</th>
-                        <th class=\"relative px-6 py-3 text-right\">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class=\"bg-white divide-y divide-gray-200\">
-                    <tr class=\"hover:bg-gray-50 transition-colors\">
-                        <td class=\"px-6 py-4 whitespace-nowrap\">
-                            <div class=\"flex items-center\">
-                                <div class=\"w-8 h-8 rounded bg-red-100 flex items-center justify-center text-red-600 mr-3\">
-                                    <i class=\"fab fa-chrome\"></i>
-                                </div>
-                                <span class=\"text-sm font-medium text-gray-900\">Google Chrome</span>
-                            </div>
-                        </td>
-                        <td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">122.0.6261.129</td>
-                        <td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">Tous les agents</td>
-                        <td class=\"px-6 py-4 whitespace-nowrap\">
-                            <div class=\"flex items-center text-green-600\">
-                                <i class=\"fas fa-check-circle mr-1.5\"></i>
-                                <span class=\"text-sm font-bold\">98.5%</span>
-                            </div>
-                        </td>
-                        <td class=\"px-6 py-4 whitespace-nowrap text-sm text-gray-500\">Aujourd'hui, 09:45</td>
-                        <td class=\"px-6 py-4 whitespace-nowrap text-right text-sm font-medium\">
-                            <button class=\"text-gray-400 hover:text-blue-600 mx-1\"><i class=\"fas fa-chart-line\"></i></button>
-                            <button class=\"text-gray-400 hover:text-gray-600 mx-1\"><i class=\"fas fa-ellipsis-v\"></i></button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
 {% endblock %}
