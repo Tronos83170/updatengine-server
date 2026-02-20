@@ -19,6 +19,7 @@ UpdatEngine Server is a web app allowing people to inventory computer and server
 * [Examples](#examples-of-deployment-packages)
 * [Links](#links)
 * [License](#license)
+  * [Interface Moderne](#interface-moderne-modern-ui)
 
 ## History
 
@@ -302,6 +303,55 @@ If cancelling then UpdatEngine-client will check and ask again on next inventory
 
 * Name: Windows 64bits\
   Condition: Windows 64 bits computer
+
+## Interface Moderne (Modern UI)
+
+Une interface utilisateur moderne et reactive a ete developpee pour UpdateEngine, accessible via le prefixe `/modern/`.
+
+### Technologies utilisees
+
+- **Tailwind CSS** (CDN) - Framework CSS utilitaire
+- **HTMX** - Requetes HTTP dynamiques sans JavaScript
+- **Alpine.js** - Reactivite legere cote client
+- **Chart.js** - Graphiques interactifs
+- **Font Awesome** - Icones
+
+### URLs disponibles
+
+| URL | Description |
+|-----|-------------|
+| `/modern/dashboard/` | Tableau de bord avec KPIs et graphiques |
+| `/modern/inventory/` | Inventaire des machines avec filtres HTMX |
+| `/modern/machine/<id>/` | Detail d'une machine avec logiciels et historique |
+| `/modern/deploy/` | Vue d'ensemble des deployements |
+| `/modern/api/dashboard-stats/` | Rafraichissement HTMX des stats (polling) |
+| `/modern/api/machine-search/` | Recherche globale JSON des machines |
+
+### Structure des fichiers
+
+```
+updatengine/
+  views_modern.py          # Vues Django pour l'UI moderne
+  urls_modern.py           # Routes avec namespace 'modern'
+  templates/modern/
+    base_modern.html       # Template de base (sidebar, topbar)
+    dashboard.html         # Tableau de bord
+    inventory.html         # Liste du parc machines
+    agent_detail.html      # Detail d'une machine
+    deploy.html            # Deployements
+    partials/
+      dashboard_stats.html # KPI cards (HTMX partial)
+      machines_rows.html   # Lignes tableau machines (HTMX)
+```
+
+### Fonctionnalites cles
+
+- Sidebar collapsible avec navigation active
+- Filtrage en temps reel des machines (HTMX)
+- Rafraichissement automatique des KPIs toutes les 30 secondes
+- Recherche globale de machines dans la barre du haut
+- Graphiques Chart.js pour les deploiements
+- Interface entierement responsive
 
 ## Links
 * Official site : https://updatengine-ng.com/
