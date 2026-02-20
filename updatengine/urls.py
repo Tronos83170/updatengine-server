@@ -18,7 +18,6 @@
 # along with this program; if not, write to the Free Software Foundation,     #
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.          #
 ###############################################################################
-
 from django.urls import include, path, re_path, reverse_lazy
 from django.contrib import admin
 from inventory.views import post
@@ -37,9 +36,10 @@ site.add_action(actions.export_as_csv)
 urlpatterns = [
     # Modern UI
     path('modern/dashboard/', views_modern.dashboard, name='modern_dashboard'),
-    path('modern/inventory/', views_modern.inventory, name='modern_inventory'),
+    path('modern/inventory/', views_modern.inventory_view, name='modern_inventory'),
     path('modern/machine/<int:machine_id>/', views_modern.machine_detail, name='modern_machine_detail'),
-    path('modern/api/dashboard-kpi/', views_modern.dashboard_kpi, name='modern_api_kpi'),
+    path('modern/api/dashboard-stats/', views_modern.htmx_dashboard_stats, name='modern_api_stats'),
+    path('modern/api/machine-search/', views_modern.api_machine_search, name='modern_api_search'),
 
     # Legacy & API
     re_path(r'^admin/', admin.site.urls),
