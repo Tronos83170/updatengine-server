@@ -245,3 +245,32 @@ def api_machine_search(request):
                 'url': f'/inventory/{m.id}/',
             })
     return JsonResponse({'results': results})
+
+
+# ---------------------------------------------------------------------------
+# Deploy overview
+# ---------------------------------------------------------------------------
+
+@login_required
+def deploy_overview(request):
+    """Modern deploy overview page with recent history and package stats."""
+    since_24h = timezone.now() - timedelta(hours=24)
+    recent_history = (
+        packagehistory.objects
+        .filter(date__gte=since_24h)
+        .select_related('machine', 'package')
+        .order_by('-date')[:20]
+    )
+    success_count = packagehistory.objects.filter(
+        date__gte=since_24h, status='Operation completed'
+    ).count()
+    error_count = packagehistory.objects.filter(
+        date__gte=since_24h, status__startswith='Error'
+    ).count()
+    context = {
+        'recent_history': recent_history,
+        'success_count': success_count,
+        'error_count': error_count,
+        'total_packages': package.objects.count(),
+    }
+    return render(request, 'modern/deploy.html', context)
