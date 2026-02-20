@@ -21,4 +21,10 @@ urlpatterns = [
 
     # Deploy
     path('deploy/', views_modern.deploy_overview, name='deploy'),
+
+    # Alerting & Rapports
+    path('alerts/', views_modern.alerts_view, name='alerts'),
+    path('api/alert-badge/', views_modern.htmx_alert_badge, name='alert_badge'),
+    path('api/alerts-rows/', views_modern.htmx_alerts_rows, name='alerts_rows'),
+    path('api/alert-count/', views_modern.api_alert_count, name='alert_count'),
 ]
