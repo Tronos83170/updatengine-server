@@ -1,0 +1,98 @@
+{% load i18n %}
+{% for alert in alerts %}
+<tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+    x-data="{ expanded: false }"
+    :class="{
+      'bg-red-50 border-l-4 border-l-red-500': '{{ alert.severity }}' === 'critical',
+      'bg-yellow-50 border-l-4 border-l-yellow-400': '{{ alert.severity }}' === 'warning',
+      'bg-blue-50 border-l-4 border-l-blue-400': '{{ alert.severity }}' === 'info'
+    }">
+
+  <!-- Severity badge -->
+  <td class="px-4 py-3">
+    {% if alert.severity == 'critical' %}
+      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
+        <i class="fas fa-exclamation-circle"></i> Critique
+      </span>
+    {% elif alert.severity == 'warning' %}
+      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700">
+        <i class="fas fa-exclamation-triangle"></i> Avertissement
+      </span>
+    {% else %}
+      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700">
+        <i class="fas fa-info-circle"></i> Info
+      </span>
+    {% endif %}
+  </td>
+
+  <!-- Machine name -->
+  <td class="px-4 py-3">
+    <a href="{% url 'modern:machine_detail' alert.machine.id %}"
+       class="font-medium text-primary-600 hover:text-primary-800 hover:underline">
+      {{ alert.machine.name }}
+    </a>
+    <div class="text-xs text-gray-400 mt-0.5">{{ alert.machine.serial|default:"-" }}</div>
+  </td>
+
+  <!-- Alert type -->
+  <td class="px-4 py-3">
+    <span class="text-sm text-gray-700 font-medium">{{ alert.get_alert_type_display }}</span>
+    <div class="text-xs text-gray-400 mt-0.5">{{ alert.description|truncatechars:60 }}</div>
+  </td>
+
+  <!-- Date -->
+  <td class="px-4 py-3 text-sm text-gray-500">
+    {% if alert.last_seen %}
+      <span title="{{ alert.last_seen|date:'d/m/Y H:i' }}">
+        {{ alert.last_seen|timesince }} ago
+      </span>
+    {% else %}
+      <span class="text-gray-300">-</span>
+    {% endif %}
+  </td>
+
+  <!-- Status -->
+  <td class="px-4 py-3">
+    {% if alert.acknowledged %}
+      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
+        <i class="fas fa-check"></i> Acquitté
+      </span>
+    {% else %}
+      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-red-100 text-red-700 animate-pulse">
+        <i class="fas fa-circle"></i> Actif
+      </span>
+    {% endif %}
+  </td>
+
+  <!-- Actions -->
+  <td class="px-4 py-3 text-right">
+    <div class="flex items-center justify-end gap-2">
+      {% if not alert.acknowledged %}
+        <button
+          hx-post="{% url 'modern:alert_acknowledge' alert.id %}"
+          hx-target="#alerts-table-body"
+          hx-swap="innerHTML"
+          hx-include="#alert-filters"
+          class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors"
+          title="Acquitter cette alerte">
+          <i class="fas fa-check"></i> Acquitter
+        </button>
+      {% endif %}
+      <a href="{% url 'modern:machine_detail' alert.machine.id %}"
+         class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+        <i class="fas fa-eye"></i> Voir
+      </a>
+    </div>
+  </td>
+</tr>
+{% empty %}
+<tr>
+  <td colspan="6" class="px-4 py-12 text-center">
+    <div class="flex flex-col items-center gap-3 text-gray-400">
+      <i class="fas fa-shield-alt text-4xl text-green-300"></i>
+      <p class="text-lg font-medium text-gray-500">Aucune alerte active</p>
+      <p class="text-sm">Tous les systèmes fonctionnent normalement.</p>
+    </div>
+  </td>
+</tr>
+{% endfor %}
