@@ -1,0 +1,11 @@
+{% if count > 0 %}
+<span id="alert-badge"
+      class="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5
+             text-xs font-bold rounded-full bg-red-500 text-white
+             animate-pulse shadow-sm"
+      title="{{ count }} alerte{{ count|pluralize }} critique{{ count|pluralize }}">
+  {{ count }}
+</span>
+{% else %}
+<span id="alert-badge" class="hidden"></span>
+{% endif %}
