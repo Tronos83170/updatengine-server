@@ -293,4 +293,4 @@ def settings_view(request):
         'online_threshold': ONLINE_THRESHOLD_MINUTES,
     }
     return render(request, 'modern/settings.html', context)
-    return JsonResponse({'count': count, 'has_critical': count > 0})
+
