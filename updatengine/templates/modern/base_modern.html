@@ -104,6 +104,11 @@
           hx-swap="outerHTML"
           class="ml-auto">
         </span>
+              <div class="border-t border-slate-700 my-3"></div>
+      <a href="{% url 'modern:settings' %}" class="sidebar-item {% block nav_settings %}{% endblock %}">
+        <i class="fas fa-cog w-5 flex-shrink-0"></i>
+        <span x-show="sidebarOpen" x-cloak>Paramètres</span>
+      </a>
       </a>
 
       <div class="border-t border-slate-700 my-3"></div>
