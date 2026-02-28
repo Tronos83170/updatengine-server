@@ -251,4 +251,46 @@ def api_alert_count(request):
     since_24h = timezone.now() - timedelta(hours=24)
     stuck_cutoff = timezone.now() - timedelta(hours=2)
     count = packagehistory.objects.filter(date__gte=since_24h, status__startswith='Error').count() + packagehistory.objects.filter(status='Install in progress', date__lte=stuck_cutoff).count()
+
+    # ---------------------------------------------------------------------------
+# Settings
+# ---------------------------------------------------------------------------
+@login_required
+def settings_view(request):
+    import sys
+    import platform
+    import django
+    from django.db import connection
+    
+    # Informations système
+    python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    django_version = django.get_version()
+    os_info = f"{platform.system()} {platform.release()}"
+    hostname = platform.node()
+    
+    # Base de données
+    db_engine = connection.settings_dict.get('ENGINE', 'N/A').split('.')[-1].upper()
+    
+    # Statistiques
+    total_machines = machine.objects.count()
+    total_packages = package.objects.count()
+    
+    since_30d = timezone.now() - timedelta(days=30)
+    total_deployments = packagehistory.objects.filter(date__gte=since_30d).count()
+    
+    total_entities = entity.objects.count()
+    
+    context = {
+        'python_version': python_version,
+        'django_version': django_version,
+        'os_info': os_info,
+        'hostname': hostname,
+        'db_engine': db_engine,
+        'total_machines': total_machines,
+        'total_packages': total_packages,
+        'total_deployments': total_deployments,
+        'total_entities': total_entities,
+        'online_threshold': ONLINE_THRESHOLD_MINUTES,
+    }
+    return render(request, 'modern/settings.html', context)
     return JsonResponse({'count': count, 'has_critical': count > 0})
