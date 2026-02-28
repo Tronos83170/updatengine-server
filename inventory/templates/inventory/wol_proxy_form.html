@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}{% trans "Edit WOL Proxy" %}{% else %}{% trans "Add WOL Proxy" %}{% endif %}{% endblock %}
+
+{% block breadcrumb %}
+<li><a href="{% url 'index' %}">{% trans "Home" %}</a></li>
+<li><a href="{% url 'wol_proxy_list' %}">{% trans "WOL Proxy" %}</a></li>
+<li class="active">{% if form.instance.pk %}{% trans "Edit" %}{% else %}{% trans "Add" %}{% endif %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% if form.instance.pk %}{% trans "Edit WOL Proxy" %}{% else %}{% trans "Add WOL Proxy" %}{% endif %}</h1>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">{% trans "Proxy Configuration" %}</h3>
+            </div>
+            <div class="panel-body">
+                <form method="post" class="form-horizontal">
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <strong>{% trans "Please correct the errors below:" %}</strong>
+                        {{ form.errors }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="form-group {% if form.name.errors %}has-error{% endif %}">
+                        <label for="id_name" class="col-sm-3 control-label">{% trans "Name" %} *</label>
+                        <div class="col-sm-9">
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <span class="help-block">{{ form.name.errors }}</span>
+                            {% endif %}
+                            <span class="help-block">{% trans "A descriptive name for this proxy" %}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group {% if form.address.errors %}has-error{% endif %}">
+                        <label for="id_address" class="col-sm-3 control-label">{% trans "Address" %} *</label>
+                        <div class="col-sm-9">
+                            {{ form.address }}
+                            {% if form.address.errors %}
+                                <span class="help-block">{{ form.address.errors }}</span>
+                            {% endif %}
+                            <span class="help-block">{% trans "IP address or hostname of the proxy server" %}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group {% if form.port.errors %}has-error{% endif %}">
+                        <label for="id_port" class="col-sm-3 control-label">{% trans "Port" %} *</label>
+                        <div class="col-sm-9">
+                            {{ form.port }}
+                            {% if form.port.errors %}
+                                <span class="help-block">{{ form.port.errors }}</span>
+                            {% endif %}
+                            <span class="help-block">{% trans "Port number (default: 9)" %}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group {% if form.subnets.errors %}has-error{% endif %}">
+                        <label for="id_subnets" class="col-sm-3 control-label">{% trans "Subnets" %} *</label>
+                        <div class="col-sm-9">
+                            {{ form.subnets }}
+                            {% if form.subnets.errors %}
+                                <span class="help-block">{{ form.subnets.errors }}</span>
+                            {% endif %}
+                            <span class="help-block">{% trans "Comma-separated list of subnets (e.g., 192.168.1.0/24, 10.0.0.0/8)" %}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group {% if form.is_active.errors %}has-error{% endif %}">
+                        <label for="id_is_active" class="col-sm-3 control-label">{% trans "Active" %}</label>
+                        <div class="col-sm-9">
+                            <div class="checkbox">
+                                <label>
+                                    {{ form.is_active }} {% trans "Enable this proxy" %}
+                                </label>
+                            </div>
+                            {% if form.is_active.errors %}
+                                <span class="help-block">{{ form.is_active.errors }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="col-sm-offset-3 col-sm-9">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa fa-save"></i> {% trans "Save" %}
+                            </button>
+                            <a href="{% url 'wol_proxy_list' %}" class="btn btn-default">
+                                <i class="fa fa-times"></i> {% trans "Cancel" %}
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="fa fa-info-circle"></i> {% trans "Information" %}</h3>
+            </div>
+            <div class="panel-body">
+                <h4>{% trans "What is a WOL Proxy?" %}</h4>
+                <p>{% trans "A WOL (Wake-on-LAN) proxy is a server that can send magic packets to wake up machines on remote subnets that are not directly accessible from the UpdateEngine server." %}</p>
+                
+                <h4>{% trans "Configuration Requirements" %}</h4>
+                <ul>
+                    <li>{% trans "The proxy server must be reachable from the UpdateEngine server" %}</li>
+                    <li>{% trans "The proxy must have the WOL proxy service installed and running" %}</li>
+                    <li>{% trans "Specify the subnets that this proxy can reach" %}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
