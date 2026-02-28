@@ -1,0 +1,202 @@
+{% extends "modern/base_modern.html" %}
+{% block title %}Paramètres - UpdateEngine{% endblock %}
+{% block nav_settings %}active{% endblock %}
+
+{% block breadcrumb %}
+<nav class="flex mb-4" aria-label="Breadcrumb">
+  <ol class="flex items-center space-x-2 text-sm text-gray-500">
+    <li><i class="fas fa-home"></i></li>
+    <li><span class="mx-2">/</span></li>
+    <li class="text-gray-900 font-medium">Paramètres</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-5xl">
+
+  <!-- Page Header -->
+  <div>
+    <h1 class="text-2xl font-bold text-gray-900">Paramètres du serveur</h1>
+    <p class="text-sm text-gray-500 mt-1">Configuration et personnalisation de l'application UpdateEngine</p>
+  </div>
+
+  <!-- Configuration générale -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <h2 class="text-base font-semibold text-gray-900">
+        <i class="fas fa-cog mr-2 text-primary-500"></i>
+        Configuration générale
+      </h2>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <div>
+          <h3 class="text-sm font-medium text-gray-900">Serveur UpdateEngine</h3>
+          <p class="text-xs text-gray-500">Version {{ version|default:"3.0.0" }} - Installé le {{ install_date|default:"N/A" }}</p>
+        </div>
+        <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+          <i class="fas fa-check-circle"></i> Actif
+        </span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <div>
+          <h3 class="text-sm font-medium text-gray-900">Base de données</h3>
+          <p class="text-xs text-gray-500">{{ db_engine|default:"MariaDB" }}</p>
+        </div>
+        <a href="#" class="text-sm text-primary-600 hover:underline">
+          <i class="fas fa-database mr-1"></i> Optimiser
+        </a>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <div>
+          <h3 class="text-sm font-medium text-gray-900">Seuil d'activité machine</h3>
+          <p class="text-xs text-gray-500">Machine considérée online si contact < {{ online_threshold|default:"60" }} minutes</p>
+        </div>
+        <input type="number" value="60" class="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500">
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistiques serveur -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <h2 class="text-base font-semibold text-gray-900">
+        <i class="fas fa-chart-line mr-2 text-primary-500"></i>
+        Statistiques
+      </h2>
+    </div>
+    <div class="p-6">
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="text-center p-4 bg-gray-50 rounded-lg">
+          <div class="text-2xl font-bold text-gray-900">{{ total_machines }}</div>
+          <div class="text-xs text-gray-500 mt-1">Machines totales</div>
+        </div>
+        <div class="text-center p-4 bg-gray-50 rounded-lg">
+          <div class="text-2xl font-bold text-green-600">{{ total_packages }}</div>
+          <div class="text-xs text-gray-500 mt-1">Paquets disponibles</div>
+        </div>
+        <div class="text-center p-4 bg-gray-50 rounded-lg">
+          <div class="text-2xl font-bold text-blue-600">{{ total_deployments }}</div>
+          <div class="text-xs text-gray-500 mt-1">Déploiements (30j)</div>
+        </div>
+        <div class="text-center p-4 bg-gray-50 rounded-lg">
+          <div class="text-2xl font-bold text-amber-600">{{ total_entities }}</div>
+          <div class="text-xs text-gray-500 mt-1">Entités</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <h2 class="text-base font-semibold text-gray-900">
+        <i class="fas fa-bell mr-2 text-primary-500"></i>
+        Notifications et alertes
+      </h2>
+    </div>
+    <div class="p-6 space-y-4">
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <div>
+          <h3 class="text-sm font-medium text-gray-900">Alertes emails</h3>
+          <p class="text-xs text-gray-500">Recevoir les alertes critiques par email</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" checked class="sr-only peer">
+          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+        </label>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
+        <div>
+          <h3 class="text-sm font-medium text-gray-900">Auto-refresh dashboard</h3>
+          <p class="text-xs text-gray-500">Rafraîchissement automatique toutes les 60 secondes</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" checked class="sr-only peer">
+          <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <h2 class="text-base font-semibold text-gray-900">
+        <i class="fas fa-bolt mr-2 text-primary-500"></i>
+        Actions rapides
+      </h2>
+    </div>
+    <div class="p-6 grid grid-cols-2 gap-4">
+      <a href="/admin/" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:shadow-md transition-all group">
+        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 group-hover:bg-blue-200 transition-colors">
+          <i class="fas fa-user-shield text-lg"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-900">Admin Django</h3>
+          <p class="text-xs text-gray-500">Interface d'administration</p>
+        </div>
+      </a>
+      <a href="/deployment/package/" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-primary-300 hover:shadow-md transition-all group">
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 group-hover:bg-purple-200 transition-colors">
+          <i class="fas fa-box text-lg"></i>
+        </div>
+        <div>
+          <h3 class="text-sm font-medium text-gray-900">Gestion paquets</h3>
+          <p class="text-xs text-gray-500">Créer/modifier paquets</p>
+        </div>
+      </a>
+      <button onclick="alert('Fonction de nettoyage cache à implémenter')" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-red-300 hover:shadow-md transition-all group">
+        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center text-red-600 group-hover:bg-red-200 transition-colors">
+          <i class="fas fa-trash text-lg"></i>
+        </div>
+        <div class="text-left">
+          <h3 class="text-sm font-medium text-gray-900">Nettoyer cache</h3>
+          <p class="text-xs text-gray-500">Vider le cache serveur</p>
+        </div>
+      </button>
+      <a href="{% url 'modern:export_inventory_csv' %}" class="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:border-amber-300 hover:shadow-md transition-all group">
+        <div class="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center text-amber-600 group-hover:bg-amber-200 transition-colors">
+          <i class="fas fa-download text-lg"></i>
+        </div>
+        <div class="text-left">
+          <h3 class="text-sm font-medium text-gray-900">Export inventaire CSV</h3>
+          <p class="text-xs text-gray-500">Télécharger CSV complet</p>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- Système -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+      <h2 class="text-base font-semibold text-gray-900">
+        <i class="fas fa-server mr-2 text-primary-500"></i>
+        Informations système
+      </h2>
+    </div>
+    <div class="p-6">
+      <dl class="grid grid-cols-2 gap-4">
+        <div class="py-2">
+          <dt class="text-xs text-gray-500 mb-1">Python</dt>
+          <dd class="text-sm font-medium text-gray-900">{{ python_version }}</dd>
+        </div>
+        <div class="py-2">
+          <dt class="text-xs text-gray-500 mb-1">Django</dt>
+          <dd class="text-sm font-medium text-gray-900">{{ django_version }}</dd>
+        </div>
+        <div class="py-2">
+          <dt class="text-xs text-gray-500 mb-1">Système</dt>
+          <dd class="text-sm font-medium text-gray-900">{{ os_info }}</dd>
+        </div>
+        <div class="py-2">
+          <dt class="text-xs text-gray-500 mb-1">Hostname</dt>
+          <dd class="text-sm font-medium text-gray-900">{{ hostname }}</dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
