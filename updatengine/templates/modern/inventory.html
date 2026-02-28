@@ -13,87 +13,79 @@
 {% endblock %}
 
 {% block content %}
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">Parc Machines</h1>
-            <p class="text-sm text-gray-500 mt-1">{{ total }} machine{{ total|pluralize }} au total</p>
-        </div>
-        <div class="flex gap-3">
-            <a href="{% url 'modern:export_inventory_csv' %}" class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
-                <i class="fas fa-download"></i> Exporter CSV
-            </a>
-        </div>
+<div class="space-y-6" x-data="{ selectedMachines: [] }">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Parc Machines</h1>
+      <p class="text-sm text-gray-500 mt-1">{{ total }} machine{{ total|pluralize }} au total</p>
     </div>
+    <div class="flex gap-3">
+      <a href="{% url 'modern:export_inventory_csv' %}" class="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition-colors">
+        <i class="fas fa-download"></i> Exporter CSV
+      </a>
+    </div>
+  </div>
 
-    <!-- Filters bar -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-        <div class="flex flex-wrap gap-4 items-center">
-            <!-- Live Search -->
-            <div class="flex-1 min-w-[300px] relative">
-                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-                <input 
-                    type="text" 
-                    name="q" 
-                    placeholder="Recherche live par nom, utilisateur, IP..." 
-                    class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    hx-get="{% url 'modern:inventory_search' %}"
-                    hx-trigger="keyup changed delay:300ms, search"
-                    hx-target="#machines-table-body"
-                    hx-indicator="#search-indicator"
-                />
-                <div id="search-indicator" class="htmx-indicator absolute right-3 top-1/2 -translate-y-1/2">
-                    <i class="fas fa-circle-notch fa-spin text-primary-500 text-xs"></i>
-                </div>
-            </div>
-
-            <!-- Static Filters (Standard Form fallback or full refresh) -->
-            <form method="get" class="flex flex-wrap gap-3 items-center">
-                <select name="status" onchange="this.form.submit()" class="border border-gray-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
-                    <option value="">Tous les états</option>
-                    <option value="online" {% if status_filter == 'online' %}selected{% endif %}>En ligne</option>
-                    <option value="offline" {% if status_filter == 'offline' %}selected{% endif %}>Hors ligne</option>
-                </select>
-
-                <select name="entity" onchange="this.form.submit()" class="border border-gray-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
-                    <option value="">Toutes les entités</option>
-                    {% for ent in entities %}
-                    <option value="{{ ent.id }}" {% if entity_filter == ent.id|stringformat:"s" %}selected{% endif %}>{{ ent.name }}</option>
-                    {% endfor %}
-                </select>
-
-                <select name="os" onchange="this.form.submit()" class="border border-gray-200 rounded-lg text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white">
-                    <option value="">Tous les OS</option>
-                    {% for os_name in os_names %}
-                    <option value="{{ os_name }}" {% if os_filter == os_name %}selected{% endif %}>{{ os_name }}</option>
-                    {% endfor %}
-                </select>
-
-                <a href="{% url 'modern:inventory' %}" class="text-sm text-gray-500 hover:text-gray-700 font-medium">
-                    Effacer
-                </a>
-            </form>
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+    <div class="flex flex-wrap gap-4 items-center">
+      <div class="flex-1 min-w-[300px] relative">
+        <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+        <input type="text" name="q" value="{{ search }}" placeholder="Recherche live..." class="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" hx-get="{% url 'modern:inventory' %}" hx-trigger="keyup changed delay:300ms, search" hx-target="#machines-table-body" hx-indicator="#search-indicator" />
+        <div id="search-indicator" class="htmx-indicator absolute right-3 top-1/2 -translate-y-1/2">
+          <i class="fas fa-circle-notch fa-spin text-primary-500 text-xs"></i>
         </div>
+      </div>
+      <form method="get" class="flex flex-wrap gap-3 items-center">
+        <select name="status" onchange="this.form.submit()" class="border border-gray-200 rounded-lg text-sm px-3 py-2 bg-white">
+          <option value="">Tous les états</option>
+          <option value="online" {% if status_filter == 'online' %}selected{% endif %}>En ligne</option>
+          <option value="offline" {% if status_filter == 'offline' %}selected{% endif %}>Hors ligne</option>
+        </select>
+        <select name="entity" onchange="this.form.submit()" class="border border-gray-200 rounded-lg text-sm px-3 py-2 bg-white">
+          <option value="">Toutes les entités</option>
+          {% for ent in entities %}<option value="{{ ent.id }}" {% if entity_filter == ent.id|stringformat:"s" %}selected{% endif %}>{{ ent.name }}</option>{% endfor %}
+        </select>
+        <a href="{% url 'modern:inventory' %}" class="text-sm text-gray-500 hover:text-gray-700 font-medium">Effacer</a>
+      </form>
     </div>
+  </div>
 
-    <!-- Machine Table -->
-    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-        <table class="w-full text-sm">
-            <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold text-xs uppercase tracking-wider">
-                <tr>
-                    <th class="px-6 py-4 text-left">Machine / ID</th>
-                    <th class="px-6 py-4 text-left">Utilisateur</th>
-                    <th class="px-6 py-4 text-left">OS</th>
-                    <th class="px-6 py-4 text-left">État</th>
-                    <th class="px-6 py-4 text-left">IP</th>
-                    <th class="px-6 py-4 text-right">Action</th>
-                </tr>
-            </thead>
-            <tbody id="machines-table-body" class="divide-y divide-gray-100">
-                {% include 'modern/partials/machines_rows.html' %}
-            </tbody>
-        </table>
+  <div x-show="selectedMachines.length > 0" x-transition class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 border border-slate-700">
+    <div class="flex items-center gap-2 border-r border-slate-700 pr-6">
+      <span class="bg-primary-500 text-white w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold" x-text="selectedMachines.length"></span>
+      <span class="text-sm font-medium">machines sélectionnées</span>
     </div>
+    <div class="flex items-center gap-3">
+      <button class="flex items-center gap-2 px-3 py-2 hover:bg-slate-800 rounded-lg text-sm transition-colors" hx-post="{% url 'modern:inventory_bulk_action' %}" hx-vals='js:{action: "deploy", machine_ids: selectedMachines}'>
+        <i class="fas fa-rocket text-primary-400"></i> Déployer
+      </button>
+      <button class="flex items-center gap-2 px-3 py-2 hover:bg-slate-800 rounded-lg text-sm transition-colors" hx-post="{% url 'modern:inventory_bulk_action' %}" hx-vals='js:{action: "wol", machine_ids: selectedMachines}'>
+        <i class="fas fa-bolt text-yellow-400"></i> Wake-on-LAN
+      </button>
+      <button class="flex items-center gap-2 px-3 py-2 hover:bg-red-900/30 text-red-400 rounded-lg text-sm transition-colors" @click="selectedMachines = []">
+        <i class="fas fa-times"></i> Annuler
+      </button>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 font-semibold text-xs uppercase tracking-wider">
+        <tr>
+          <th class="px-6 py-4 text-left w-10">
+            <input type="checkbox" @change="if($el.checked) { selectedMachines = Array.from(document.querySelectorAll('.machine-checkbox')).map(el => el.value) } else { selectedMachines = [] }" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+          </th>
+          <th class="px-6 py-4 text-left">Machine / ID</th>
+          <th class="px-6 py-4 text-left">OS</th>
+          <th class="px-6 py-4 text-left">État</th>
+          <th class="px-6 py-4 text-left">IP</th>
+          <th class="px-6 py-4 text-right">Action</th>
+        </tr>
+      </thead>
+      <tbody id="machines-table-body" class="divide-y divide-gray-100">
+        {% include 'modern/partials/machines_rows.html' %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock %}
