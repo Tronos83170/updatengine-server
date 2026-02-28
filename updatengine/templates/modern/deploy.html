@@ -29,8 +29,13 @@
     </div>
   </div>
 
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <!-- Stats Cards with HTMX auto-refresh -->
+  <div id="deploy-stats" class="grid grid-cols-1 sm:grid-cols-4 gap-4"
+       hx-get="{% url 'modern:deploy' %}"
+       hx-trigger="every 60s"
+       hx-target="#deploy-stats"
+       hx-select="#deploy-stats">
+    <!-- Paquets -->
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center gap-4">
       <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 text-xl">
         <i class="fas fa-box"></i>
@@ -40,23 +45,42 @@
         <p class="text-2xl font-bold text-gray-900">{{ total_packages }}</p>
       </div>
     </div>
+    <!-- Succes -->
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center gap-4">
       <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-600 text-xl">
         <i class="fas fa-check-circle"></i>
       </div>
       <div>
         <p class="text-xs text-gray-500 uppercase tracking-wider">Succes (24h)</p>
-        <p class="text-2xl font-bold text-gray-900">{{ success_count }}</p>
+        <p class="text-2xl font-bold text-green-700">{{ success_count }}</p>
       </div>
     </div>
+    <!-- Erreurs -->
     <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4 flex items-center gap-4">
       <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-600 text-xl">
         <i class="fas fa-times-circle"></i>
       </div>
       <div>
         <p class="text-xs text-gray-500 uppercase tracking-wider">Erreurs (24h)</p>
-        <p class="text-2xl font-bold text-gray-900">{{ error_count }}</p>
+        <p class="text-2xl font-bold text-red-700">{{ error_count }}</p>
       </div>
+    </div>
+    <!-- Taux de succes -->
+    <div class="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
+      <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Taux de succes (24h)</p>
+      {% with total=success_count|add:error_count %}
+      {% if total > 0 %}
+        {% widthratio success_count total 100 as success_pct %}
+        <div class="flex items-center gap-2">
+          <div class="flex-1 bg-gray-200 rounded-full h-3">
+            <div class="bg-green-500 h-3 rounded-full transition-all" style="width: {{ success_pct }}%"></div>
+          </div>
+          <span class="text-sm font-bold text-gray-900">{{ success_pct }}%</span>
+        </div>
+      {% else %}
+        <p class="text-sm text-gray-400">Aucune donn&#233;e</p>
+      {% endif %}
+      {% endwith %}
     </div>
   </div>
 
@@ -67,7 +91,19 @@
         <i class="fas fa-history mr-2 text-primary-500"></i>
         Historique recent (24h)
       </h2>
-      <a href="/deployment/" class="text-sm text-primary-600 hover:underline">Voir tout</a>
+      <div class="flex items-center gap-3">
+        <!-- Filtre statut -->
+        <form method="get" class="flex items-center gap-2">
+          <select name="status_filter" onchange="this.form.submit()"
+                  class="text-xs border border-gray-200 rounded-lg px-2 py-1 text-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500">
+            <option value="">Tous les statuts</option>
+            <option value="success" {% if request.GET.status_filter == 'success' %}selected{% endif %}>Succes</option>
+            <option value="error" {% if request.GET.status_filter == 'error' %}selected{% endif %}>Erreurs</option>
+            <option value="progress" {% if request.GET.status_filter == 'progress' %}selected{% endif %}>En cours</option>
+          </select>
+        </form>
+        <a href="/deployment/" class="text-sm text-primary-600 hover:underline">Voir tout</a>
+      </div>
     </div>
     <div class="overflow-x-auto">
       <table class="min-w-full divide-y divide-gray-200">
@@ -81,6 +117,7 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
           {% for h in recent_history %}
+          {% if not request.GET.status_filter or request.GET.status_filter in h.status|lower %}
           <tr class="hover:bg-gray-50 transition-colors">
             <td class="px-4 py-3">
               <div class="flex items-center gap-2">
@@ -112,6 +149,7 @@
             </td>
             <td class="px-4 py-3 text-sm text-gray-500">{{ h.date|date:'d/m/Y H:i' }}</td>
           </tr>
+          {% endif %}
           {% empty %}
           <tr>
             <td colspan="4" class="px-4 py-8 text-center text-gray-500">
@@ -149,6 +187,30 @@
           <p class="text-sm text-gray-500">Grouper les paquets par profil</p>
         </div>
         <i class="fas fa-chevron-right ml-auto text-gray-400 group-hover:text-purple-500 transition-colors"></i>
+      </div>
+    </a>
+    <a href="/deployment/packagehistory/" class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:border-primary-300 hover:shadow-md transition-all group">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600 text-xl group-hover:bg-amber-200 transition-colors">
+          <i class="fas fa-history"></i>
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-900">Historique complet</h3>
+          <p class="text-sm text-gray-500">Tous les evenements de deploiement</p>
+        </div>
+        <i class="fas fa-chevron-right ml-auto text-gray-400 group-hover:text-amber-500 transition-colors"></i>
+      </div>
+    </a>
+    <a href="{% url 'modern:alerts' %}" class="bg-white rounded-xl border border-gray-200 shadow-sm p-5 hover:border-red-300 hover:shadow-md transition-all group">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center text-red-600 text-xl group-hover:bg-red-200 transition-colors">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div>
+          <h3 class="font-semibold text-gray-900">Alertes actives</h3>
+          <p class="text-sm text-gray-500">Erreurs et deployements bloques</p>
+        </div>
+        <i class="fas fa-chevron-right ml-auto text-gray-400 group-hover:text-red-500 transition-colors"></i>
       </div>
     </a>
   </div>
