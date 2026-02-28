@@ -30,6 +30,9 @@ urlpatterns = [
     # Alerting & Rapports
     path('alerts/', views_modern.alerts_view, name='alerts'),
     path('api/alert-badge/', views_modern.htmx_alert_badge, name='alert_badge'),
+
+        # Settings
+    path('settings/', views_modern.settings_view, name='settings'),
     path('api/alerts-rows/', views_modern.htmx_alerts_rows, name='alerts_rows'),
     path('api/alert-count/', views_modern.api_alert_count, name='alert_count'),
 ]
