@@ -38,9 +38,6 @@ urlpatterns = [
 
     # Legacy & API
     re_path(r'^admin/', admin.site.urls),
-    re_path(r'^inventory/', include('inventory.urls')),
-    re_path(r'^repository/', include('repository.urls')),
-    re_path(r'^deployment/', include('deployment.urls')),
     re_path(r'^check_version/', check_version),
     re_path(r'^post/', post),
 
