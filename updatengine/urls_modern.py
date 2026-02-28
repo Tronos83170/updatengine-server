@@ -15,9 +15,14 @@ urlpatterns = [
     path('inventory/', views_modern.inventory_view, name='inventory'),
     path('machine/<int:machine_id>/', views_modern.machine_detail, name='machine_detail'),
 
+    # Inventory - Export & Bulk actions
+    path('inventory/export/csv/', views_modern.export_inventory_csv, name='export_inventory_csv'),
+    path('inventory/bulk-action/', views_modern.inventory_bulk_action, name='inventory_bulk_action'),
+
     # HTMX partials
     path('api/dashboard-stats/', views_modern.htmx_dashboard_stats, name='dashboard_stats'),
     path('api/machine-search/', views_modern.api_machine_search, name='machine_search'),
+    path('api/htmx-machine-search/', views_modern.htmx_machine_search, name='htmx_machine_search'),
 
     # Deploy
     path('deploy/', views_modern.deploy_overview, name='deploy'),
